@@ -9,6 +9,9 @@ from astropy.table import Table
 
 # Global parameters
 _bol_luminosity = 1e46
+_potential_r_0 = 3000 # in pc
+_potential_z_0 = 300 # in pc
+_potential_v_0 = 3e-4 # in pc/yr
 
 # The first function we will define is the emission spectrum of the AGN
 def emission_spec():
@@ -26,7 +29,8 @@ def emission_spec():
 
 # Calculate flux at planet using luminosity
 def spec_in_flux(spec_in_luminosity, distance):
-    spec_in_luminosity['flux'] = spec_in_luminosity['flux'] / (4*np.pi*distance**2)
+    distance_cm = distance * 3.086e18
+    spec_in_luminosity['flux'] = spec_in_luminosity['flux'] / (4*np.pi*distance_cm**2)
     return spec_in_luminosity
 
 # The next function we will define is the luminosity (the normalization of the brightness of the spectrum)
@@ -94,13 +98,13 @@ def dust_obscurity(spectrum, a_v):
     spectrum['flux'] = spectrum['flux'] * 10**(-0.4 * a_lam)
     return spectrum
 
-def main_loop(): # Change function name?
+def main_loop(): # Change function name? Play around with initial conditions
     step_size = 1e-3
     steps = int(10 / step_size)
     # Initial conditions
-    r_phi_z_0 = np.array((0.31, 0.0, 0.17))
+    r_phi_z_0 = np.array((2.67, 0.0, 0.17))
     vel_0 = np.array((0.0, 0.0))
-    q = 0.9
+    q = _potential_z_0 / _potential_r_0
     # Angular momentum of the orbit
     Lz = 0.2
 
@@ -117,15 +121,13 @@ def main_loop(): # Change function name?
     all_avs = np.zeros(steps)
 
     for step in range(steps):
-        all_positions[step, :] = current_position
         current_position, current_velocity = r_phi_z_position(current_position, current_velocity, Lz, q, step_size)
-        all_avs[step] = torus_obscuration(current_position, _bol_luminosity)
+        current_position_phys = current_position * (_potential_r_0, 1, _potential_z_0) # Redimensionalizing units
+        all_positions[step, :] = current_position_phys
+        all_avs[step] = torus_obscuration(current_position_phys, _bol_luminosity)
         red_spec = dust_obscurity(spectrum, all_avs[step])
-        flux_spec = spec_in_flux(red_spec, np.sqrt(current_position[0]**2 + current_position[2]**2)) # Need to put this into real units
+        flux_spec = spec_in_flux(red_spec, np.sqrt(current_position_phys[0]**2 + current_position_phys[2]**2))
         # Flux_spec is the thing that actually interacts with the atmosphere
-        # r = r / r_0 ; r_0 = 2 kpc --> How do I write these since r and z are part of a vector and v is not?
-        # v_r = v_r / v_0 ; v_0 = 300 km/s
-        # z = z / z_0 ; z_0 = ~100 pc
 
 
     pp.plot(all_positions[:, 0], all_positions[:, 2])
