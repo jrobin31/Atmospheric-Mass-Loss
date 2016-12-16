@@ -37,7 +37,7 @@ r_norm = r / r_0
 t_norm =(t * v_0)/ r_0
 beta = (G * m * M_pl) / (r_0 * k * T_0)
 
-# Equation 11
+# Equation 11 
 J_norm[r_norm, phi] = math.exp(-tau_norm[r_norm, phi])
 
 # Equation 12 - might need to define this before equation 11
