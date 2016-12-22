@@ -64,7 +64,7 @@ def metallicity_host():
     # We need to talk to Patrick Young on this one
     # This will consider photochemistry as well - talk to Ariel Anbar 
 
-    return
+    return 
 
 def torus_obscuration(position, luminosity, r_in=20, r_out=600, tau_e=10, beta=1.1, gamma=1):
     # Units for radius: AU; min. 20, max. 600
@@ -100,13 +100,13 @@ def dust_obscurity(spectrum, a_v):
 
 def main_loop(): # Change function name? Play around with initial conditions
     step_size = 1e-3
-    steps = int(10 / step_size)
+    steps = int(30 / step_size)
     # Initial conditions
     r_phi_z_0 = np.array((2.67, 0.0, 0.17))
     vel_0 = np.array((0.0, 0.0))
     q = _potential_z_0 / _potential_r_0
     # Angular momentum of the orbit
-    Lz = 0.2
+    Lz = 2.5
 
     spectrum = emission_spec()
 
@@ -147,8 +147,9 @@ def main_loop(): # Change function name? Play around with initial conditions
     pp.show()
 
 # Plot av vs. time
-    pp.plot(range(steps), all_avs)
-    pp.xlabel('Time step')
+    steps_myr = np.arange(steps) * step_size * _potential_r_0/_potential_v_0 / 1e6
+    pp.plot(steps_myr, all_avs)
+    pp.xlabel('Time (Myr)')
     pp.ylabel('$A_V$')
     pp.show()
 
